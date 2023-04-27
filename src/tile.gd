@@ -1,5 +1,5 @@
 extends StaticBody3D
-class_name TileClass
+class_name TacticTile
 
 const Utils = preload("res://src/utils.gd")
 

@@ -1,24 +1,24 @@
 extends Node3D
-class_name LevelClass
+class_name TacticsLevel
 
 var t_from = null
 var t_to = null
 var curr_t = null
-var player : PlayerControllerClass = null
-var enemy : EnemyControllerClass
-var World : WorldClass
-var camera : CameraClass
-var ui_control : PlayerControllerClassUI
+var player : TacticsPlayerController = null
+var enemy : TacticsEnemyController
+var arena : TacticsArena
+var camera : TacticsCamera
+var ui_control : TacticsPlayerControllerUI
 
 
 func _ready():
 	player = $Player
 	enemy = $Enemy
-	World = $World
-	camera = $CameraClass
+	arena = $Arena
+	camera = $TacticsCamera
 	ui_control = $PlayerControllerUI
-	player.configure(World, camera, ui_control)
-	enemy.configure(World, camera)
+	player.configure(arena, camera, ui_control)
+	enemy.configure(arena, camera)
 
 
 func turn_handler(delta):

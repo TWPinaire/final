@@ -1,27 +1,29 @@
 extends Node3D
-class_name PlayerControllerClass
+class_name TacticsPlayerController
 
-var thisPawn = null
-var targetPawn = null
+var curr_pawn = null
+var attackable_pawn = null
 
+# wait
 var wait_time = 0
 
+# controller status
 var is_joystick = false
 
-var World : World = null
-var gameCamera : CameraClass = null
+var arena : TacticsArena = null
+var tactics_camera : TacticsCamera = null
 
-
+# stage control
 var stage = 0
 
-var ui_control : PlayerControllerClassUI = null
+var ui_control : TacticsPlayerControllerUI = null
 
 
-func configure(my_World : World, my_camera : CameraClass, my_control : PlayerControllerClassUI):
-	World = my_World
-	gameCamera = my_camera
+func configure(my_arena : TacticsArena, my_camera : TacticsCamera, my_control : TacticsPlayerControllerUI):
+	arena = my_arena
+	tactics_camera = my_camera
 	ui_control = my_control
-	gameCamera.target = get_children().front()
+	tactics_camera.target = get_children().front()
 
 	ui_control.get_act("Move").connect("pressed",Callable(self,"player_wants_to_move"))
 	ui_control.get_act("Wait").connect("pressed",Callable(self,"player_wants_to_wait"))
@@ -40,7 +42,7 @@ func get_mouse_over_object(lmask):
 
 
 func can_act():
-
+	#var pawn : TacticsPawn
 	for pawn in get_children(): 
 		if pawn.can_act(): return true 
 	return stage > 0
@@ -51,105 +53,109 @@ func reset():
 		pawn.reset()
 
 
-
+# --- user action inputs --- #
 func player_wants_to_move(): stage = 2
 func player_wants_to_cancel(): stage = 1 if stage > 1 else 0
 func player_wants_to_wait(): 
-	thisPawn.do_wait()
+	curr_pawn.do_wait()
 	stage = 0
 func player_wants_to_attack(): stage = 5
 
 
+# --- aux stage funcs --- #
 func _aux_select_pawn():
 	var pawn = get_mouse_over_object(2)
 	var tile = get_mouse_over_object(1) if !pawn else pawn.get_tile()
-	World.hoverMark(tile)
+	arena.mark_hover_tile(tile)
 	return pawn if pawn else tile.get_object_above() if tile else null
 
 func _aux_select_tile():
 	var pawn = get_mouse_over_object(2)
 	var tile = get_mouse_over_object(1) if !pawn else pawn.get_tile()
-	World.hoverMark(tile)
+	arena.mark_hover_tile(tile)
 	return tile
 
+
+# --- stages ---- #
 func select_pawn():
-	World.reset()
-	if thisPawn: thisPawn.display_pawn_stats(false)
-	thisPawn = _aux_select_pawn()
-	if !thisPawn : return
-	thisPawn.display_pawn_stats(true)
-	if Input.is_action_just_pressed("ui_accept") and thisPawn.can_act() and thisPawn in get_children():
-		gameCamera.target = thisPawn
+	arena.reset()
+	if curr_pawn: curr_pawn.display_pawn_stats(false)
+	curr_pawn = _aux_select_pawn()
+	if !curr_pawn : return
+	curr_pawn.display_pawn_stats(true)
+	if Input.is_action_just_pressed("ui_accept") and curr_pawn.can_act() and curr_pawn in get_children():
+		tactics_camera.target = curr_pawn
 		stage = 1
 
 func display_available_actions_for_pawn():
-	thisPawn.display_pawn_stats(true)
-	World.reset()
-	World.hoverMark(thisPawn.get_tile())
+	curr_pawn.display_pawn_stats(true)
+	arena.reset()
+	arena.mark_hover_tile(curr_pawn.get_tile())
 
 func display_available_movements():
-	World.reset()
-	if !thisPawn: return
-	gameCamera.target = thisPawn
-	World.tileLink(thisPawn.get_tile(), thisPawn.jump_height, get_children())
-	World.reachableTiles(thisPawn.get_tile(), thisPawn.move_radious)
+	arena.reset()
+	if !curr_pawn: return
+	tactics_camera.target = curr_pawn
+	arena.link_tiles(curr_pawn.get_tile(), curr_pawn.jump_height, get_children())
+	arena.mark_reachable_tiles(curr_pawn.get_tile(), curr_pawn.move_radious)
 	stage = 3
 
 func display_attackable_targets():
-	World.reset()
-	if !thisPawn: return
-	gameCamera.target = thisPawn
-	World.tileLink(thisPawn.get_tile(), thisPawn.attack_radious)
-	World.attackableTiles(thisPawn.get_tile(), thisPawn.attack_radious)
+	arena.reset()
+	if !curr_pawn: return
+	tactics_camera.target = curr_pawn
+	arena.link_tiles(curr_pawn.get_tile(), curr_pawn.attack_radious)
+	arena.mark_attackable_tiles(curr_pawn.get_tile(), curr_pawn.attack_radious)
 	stage = 6
 
 func select_new_location():
 	var tile = get_mouse_over_object(1)
-	World.hoverMark(tile) 
+	arena.mark_hover_tile(tile) 
 	if Input.is_action_just_pressed("ui_accept"):
 		if tile and tile.reachable:
-			thisPawn.pathList = World.pathGen(tile)
-			gameCamera.target = tile
+			curr_pawn.path_stack = arena.generate_path_stack(tile)
+			tactics_camera.target = tile
 			stage = 4
 
 func select_pawn_to_attack():
-	thisPawn.display_pawn_stats(true)
-	if targetPawn: targetPawn.display_pawn_stats(false)
+	curr_pawn.display_pawn_stats(true)
+	if attackable_pawn: attackable_pawn.display_pawn_stats(false)
 	var tile = _aux_select_tile()
-	targetPawn = tile.get_object_above() if tile else null
-	if targetPawn: targetPawn.display_pawn_stats(true)
+	attackable_pawn = tile.get_object_above() if tile else null
+	if attackable_pawn: attackable_pawn.display_pawn_stats(true)
 	if Input.is_action_just_pressed("ui_accept") and tile and tile.attackable:
-		gameCamera.target = targetPawn
+		tactics_camera.target = attackable_pawn
 		stage = 7
 
 func move_pawn():
-	thisPawn.display_pawn_stats(false)
-	if thisPawn.pathList.is_empty(): 
-		stage = 0 if !thisPawn.can_act() else 1
+	curr_pawn.display_pawn_stats(false)
+	if curr_pawn.path_stack.is_empty(): 
+		stage = 0 if !curr_pawn.can_act() else 1
 
 func attack_pawn(delta):
-	if !targetPawn: thisPawn.can_attack = false
+	if !attackable_pawn: curr_pawn.can_attack = false
 	else:
-		if !thisPawn.do_attack(targetPawn, delta): return
-		targetPawn.display_pawn_stats(false)
-		gameCamera.target = thisPawn
-	targetPawn = null
-	stage = 0 if !thisPawn.can_act() else 1
+		if !curr_pawn.do_attack(attackable_pawn, delta): return
+		attackable_pawn.display_pawn_stats(false)
+		tactics_camera.target = curr_pawn
+	attackable_pawn = null
+	stage = 0 if !curr_pawn.can_act() else 1
 
+# --- camera --- #
 func move_camera():
 	var h = -Input.get_action_strength("camera_left")+Input.get_action_strength("camera_right")
 	var v = Input.get_action_strength("camera_forward")-Input.get_action_strength("camera_backwards")
-	gameCamera.move_camera(h, v, is_joystick)
+	tactics_camera.move_camera(h, v, is_joystick)
 
 func camera_rotation():
-	if Input.is_action_just_pressed("camera_rotate_left"): gameCamera.y_rot -= 90
-	if Input.is_action_just_pressed("camera_rotate_right"): gameCamera.y_rot += 90
+	if Input.is_action_just_pressed("camera_rotate_left"): tactics_camera.y_rot -= 90
+	if Input.is_action_just_pressed("camera_rotate_right"): tactics_camera.y_rot += 90
 
 
 func act(delta):
 	move_camera()
 	camera_rotation()
-	ui_control.set_visibility_of_actions_menu(stage in [1,2,3,5,6], thisPawn)
+	ui_control.set_visibility_of_actions_menu(stage in [1,2,3,5,6], curr_pawn)
 	match stage:
 		0: select_pawn()
 		1: display_available_actions_for_pawn()

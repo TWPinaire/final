@@ -1,12 +1,12 @@
 extends Node3D
-class_name EnemyControllerClass
+class_name TacticsEnemyController
 
 var stage = 0
 var curr_pawn
 var attackable_pawn
 
 var tactics_camera = null
-var World = null
+var arena = null
 var targets = null
 
 
@@ -20,39 +20,39 @@ func reset():
 	for p in get_children(): p.reset()
 
 
-func configure(my_World, my_camera):
+func configure(my_arena, my_camera):
 	tactics_camera = my_camera
-	World = my_World
+	arena = my_arena
 	curr_pawn = get_children().front()
 
 
 func choose_pawn():
-	World.reset()
+	arena.reset()
 	for p in get_children():
 		if p.can_act(): curr_pawn = p 
 	stage = 1
 
 
 func chase_nearest_enemy():
-	World.reset()
-	World.tileLink(curr_pawn.get_tile(), curr_pawn.jump_height, get_children())
-	World.reachableTiles(curr_pawn.get_tile(), curr_pawn.move_radious)
-	var to = World.nearestNeighbhor(curr_pawn, targets.get_children())
-	curr_pawn.pathList = World.pathGen(to)
+	arena.reset()
+	arena.link_tiles(curr_pawn.get_tile(), curr_pawn.jump_height, get_children())
+	arena.mark_reachable_tiles(curr_pawn.get_tile(), curr_pawn.move_radious)
+	var to = arena.get_nearest_neighbor_to_pawn(curr_pawn, targets.get_children())
+	curr_pawn.path_stack = arena.generate_path_stack(to)
 	tactics_camera.target = to
 	stage = 2
 
 
 func move_pawn():
-	if curr_pawn.pathList.is_empty(): 
+	if curr_pawn.path_stack.is_empty(): 
 		stage = 3
 
 
 func choose_pawn_to_attack():
-	World.reset()
-	World.tileLink(curr_pawn.get_tile(), curr_pawn.attack_radious)
-	World.attackableTiles(curr_pawn.get_tile(), curr_pawn.attack_radious)
-	attackable_pawn = World.getWeakest(targets.get_children())
+	arena.reset()
+	arena.link_tiles(curr_pawn.get_tile(), curr_pawn.attack_radious)
+	arena.mark_attackable_tiles(curr_pawn.get_tile(), curr_pawn.attack_radious)
+	attackable_pawn = arena.get_weakest_pawn_to_attack(targets.get_children())
 	if attackable_pawn: 
 		attackable_pawn.display_pawn_stats(true)
 		tactics_camera.target = attackable_pawn

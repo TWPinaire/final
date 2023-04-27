@@ -9,13 +9,16 @@ const MIN_HEIGHT_TO_JUMP = 1
 const GRAVITY_STRENGTH = 7
 const MIN_TIME_FOR_ATTACK = 1
 
+# class
 @export var pawn_class : Utils.PAWN_CLASSES
 @export var pawn_strategy : Utils.PAWN_STRATEGIES
 @export var pawn_name : String = "Trooper"
 
+# pawn available actions
 var can_move = true
 var can_attack = true
 
+# stats
 var move_radious 
 var jump_height
 var attack_radious
@@ -23,12 +26,12 @@ var attack_power
 var max_health = 100
 var curr_health = 100
 
-
+# animation
 var curr_frame : int = 0
 var animator = null
 
-
-var pathList = []
+# pathfinding
+var path_stack = []
 var move_direction = null
 var is_jumping = false
 var gravity = Vector3.ZERO
@@ -55,21 +58,23 @@ func look_at_direction(dir):
 
 func follow_the_path(delta):
 	if !can_move : return
-	if move_direction == null : move_direction = pathList.front()-global_transform.origin
+	if move_direction == null : move_direction = path_stack.front()-global_transform.origin
 	if move_direction.length() > 0.5:
 
 		look_at_direction(move_direction)
 		var p_velocity = move_direction.normalized()
 		var curr_speed = SPEED
 
-		
+		# apply jump
 		if move_direction.y > MIN_HEIGHT_TO_JUMP: 
 			curr_speed = clamp(abs(move_direction.y)*2.3, 3, INF)
 			is_jumping = true
+
+		# fall or move to the edge before falling
 		elif move_direction.y < -MIN_HEIGHT_TO_JUMP:
-			if Utils.vector_distance_without_y(pathList.front(), global_transform.origin) <= 0.2:
+			if Utils.vector_distance_without_y(path_stack.front(), global_transform.origin) <= 0.2:
 				gravity += Vector3.DOWN*delta*GRAVITY_STRENGTH
-				p_velocity = (pathList.front()-global_transform.origin).normalized()+gravity
+				p_velocity = (path_stack.front()-global_transform.origin).normalized()+gravity
 			else:
 				p_velocity = Utils.vector_remove_y(move_direction).normalized()
 
@@ -77,13 +82,13 @@ func follow_the_path(delta):
 		set_up_direction(Vector3.UP)
 		move_and_slide()
 		var _v = p_velocity
-		if global_transform.origin.distance_to(pathList.front()) >= 0.2: return
+		if global_transform.origin.distance_to(path_stack.front()) >= 0.2: return
 
-	pathList.pop_front()
+	path_stack.pop_front()
 	move_direction = null
 	is_jumping = false
 	gravity = Vector3.ZERO
-	can_move = pathList.size() > 0
+	can_move = path_stack.size() > 0
 
 
 
@@ -101,7 +106,7 @@ func start_animator():
 
 
 func apply_movement(delta):
-	if !pathList.is_empty(): follow_the_path(delta)
+	if !path_stack.is_empty(): follow_the_path(delta)
 	else: adjust_to_center()
 
 

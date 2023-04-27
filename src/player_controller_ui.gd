@@ -1,9 +1,9 @@
 extends Control
-class_name PlayerControllerClassUI
+class_name TacticsPlayerControllerUI
 
 
-@onready var layout_xbox = load("res://assets/sprites/labels/controls-ui-xbox.png")
-@onready var layout_pc = load("res://assets/sprites/labels/controls-ui.png")
+@onready var layout_xbox
+@onready var layout_pc 
 var is_joystick = false
 
 

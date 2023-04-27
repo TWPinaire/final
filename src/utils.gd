@@ -1,17 +1,18 @@
 const TILE_SRC = "res://src/tile.gd"
 
-enum PAWN_CLASSES {Dante, Virgil, Angel, Priest, Slime_small, Slime_smallCPT, Eyeball_Demon}
+enum PAWN_CLASSES {Philosopher, Poet, priest, scientist, SlimeBg, SlimeSm, Demon}
 enum PAWN_STRATEGIES {Tank, Flank, Support}
-const Dante_model = "res://assets/sprites/characters/characterModel.escn"
-const Virgil_model = "res://assets/sprites/characters/characterModel.escn"
-const Angel_model = "res://assets/sprites/characters/characterModel.escn"
-const Priest_model = "res://assets/sprites/characters/characterModel.escn"
-const slime_big_model = "res://assets/sprites/characters/slimeModel.escn"
-const Slime_small_model = "res://assets/sprites/characters/slimeModel.escn"
-const Eyeball_Demon_model = "res://assets/sprites/characters/belenModel.escn"
+const Philosopher_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
+const Poet_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
+const Priest_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
+const Scientist_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
+const SlimeBg_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
+const SlimeSm_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
+const Demon_Sprite = "res://assets/sprites/characters/chr_pawn_placeholder.png"
 
 
 static func convert_tiles_into_static_bodies(tiles_obj):
+
 
 
 	for t in tiles_obj.get_children():
@@ -40,13 +41,13 @@ static func create_material(color, texture=null, shaded_mode=0):
 
 static func get_pawn_sprite(pawn_class):
 	match pawn_class:
-		0: return load(Dante_model)
-		1: return load(Virgil_model)
-		2: return load(Angel_model)
-		3: return load(Priest_model)
-		4: return load(Slime_small_model)
-		5: return load(slime_big_model)
-		6: return load(Eyeball_Demon_model)
+		0: return load(Philosopher_Sprite)
+		1: return load(Poet_Sprite)
+		2: return load(Priest_Sprite)
+		3: return load(Scientist_Sprite)
+		4: return load(SlimeSm_Sprite)
+		5: return load(SlimeBg_Sprite)
+		6: return load(Demon_Sprite)
 	
 
 static func get_pawn_move_radious(pawn_class):
