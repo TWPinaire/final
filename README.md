@@ -15,31 +15,4 @@ Anyways, feel free to use this sample in your own game.
 - In case you are searching for some 2d projects, checkout [GDQuest](https://github.com/GDQuest/godot-2d-tactical-rpg-movement) or [TBS_GoDot](https://github.com/ja-brouil/TBS_GoDot)
 
 
-As mencioned before, this project uses [Godot Engine 4](https://godotengine.org/) (and was ported quite recently), so it will no longer support previous versions of the engine. If (for some reason) you still want to use an older version of Godot make sure to clone from the respective branch, but keep in mind that no new features will be added in the future.
 
-
-#### Features
-
-- Turn based plus grid movements
-- Each pawn can move and attack
-- Super basic (and stupid) enemy AI
-- Camera movements and rotations
-- Automatic battlegroud map recognition (req. Blender + Godot Export) [Here](./docs/tutorials/how-to-create-maps/README.md)
-- Controller Support
-
-[![asset-store](./docs/img/asset-store.png)](https://godotengine.org/asset-library/asset/1295)
-
-
-#### Preview
-
-![preview](./docs/img/preview.png)
-
-
-#### Special thanks
-
-- GDQuest
-- Tiny Legions
-- Miziziziz
-- TutsByKai
-- AdamCYounis
-- Almost every other guy at Godot's formus / StackOverflow
